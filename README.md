@@ -149,6 +149,7 @@ To use this library you might need to have the latest git versions of [ESP8266](
 - [VZero](https://github.com/andig/vzero) - the Wireless zero-config controller for volkszaehler.org
 - [ESPurna](https://bitbucket.org/xoseperez/espurna) - ESPurna ("spark" in Catalan) is a custom C firmware for ESP8266 based smart switches. It was originally developed with the ITead Sonoff in mind.
 - [fauxmoESP](https://bitbucket.org/xoseperez/fauxmoesp) - Belkin WeMo emulator library for ESP8266.
+- [ESP-RFID] (https://github.com/omersiar/esp-rfid) - MFRC522 RFID Access Control Management project for ESP8266.
 
 ## Request Variables
 
@@ -562,20 +563,29 @@ server.serveStatic("/", SPIFFS, "/www/");
 server.serveStatic("/", SPIFFS, "/www/").setDefaultFile("default.html");
 ```
 
+### Serving static files with authentication 
+
+```cpp
+server
+    .serveStatic("/", SPIFFS, "/www/")
+    .setDefaultFile("default.html")
+    .setAuthentication("user", "pass");
+```
+
 ### Specifying Cache-Control header
 It is possible to specify Cache-Control header value to reduce the number of calls to the server once the client loaded
 the files. For more information on Cache-Control values see [Cache-Control](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9)
 ```cpp
 // Cache responses for 10 minutes (600 seconds)
-server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age:600");
+server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600");
 
 //*** Change Cache-Control after server setup ***
 
 // During setup - keep a pointer to the handler
-AsyncStaticWebHandler* handler = &server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age:600");
+AsyncStaticWebHandler* handler = &server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600");
 
 // At a later event - change Cache-Control
-handler->setCacheControl("max-age:30");
+handler->setCacheControl("max-age=30");
 ```
 
 ### Specifying Date-Modified header
@@ -755,6 +765,8 @@ ws.binary((uint32_t)client_id, flash_binary, 4);
 //send binary to all clients
 ws.binaryAll((char*)binary);
 ws.binaryAll((uint8_t*)binary, (size_t)len);
+//HTTP Authenticate before switch to Websocket protocol 
+ws.setAuthentication("user", "pass"); 
 
 //client methods
 AsyncWebSocketClient * client;
@@ -777,6 +789,32 @@ const uint8_t flash_binary[] PROGMEM = { 0x01, 0x02, 0x03, 0x04 };
 client->binary(flash_binary, 4);
 ```
 
+### Direct access to web socket message buffer
+When sending a web socket message using the above methods a buffer is created.  Under certain circumstances you might want to manipulate or populate this buffer directly from your application, for example to prevent unnecessary duplications of the data.  This example below shows how to create a buffer and print data to it from an ArduinoJson object then send it.   
+
+```cpp
+void sendDataWs(AsyncWebSocketClient * client)
+{
+    DynamicJsonBuffer jsonBuffer;
+    JsonObject& root = jsonBuffer.createObject();
+    root["a"] = "abc";
+    root["b"] = "abcd";
+    root["c"] = "abcde";
+    root["d"] = "abcdef";
+    root["e"] = "abcdefg";
+    size_t len = root.measureLength();
+    AsyncWebSocketMessageBuffer * buffer = ws.makeBuffer(len); //  creates a buffer (len + 1) for you.
+    if (buffer) {
+        root.printTo((char *)buffer->get(), len + 1);
+        if (client) {
+            client->text(buffer);
+        } else {
+            ws.textAll(buffer);
+        }
+    }
+}
+```
+
 ## Async Event Source Plugin
 The server includes EventSource (Server-Sent Events) plugin which can be used to send short text events to the browser.
 Difference between EventSource and WebSockets is that EventSource is single direction, text-only protocol.
@@ -796,6 +834,8 @@ void setup(){
     // and set reconnect delay to 1 second
     client->send("hello!",NULL,millis(),1000);
   });
+  //HTTP Basic authentication
+  events.setAuthentication("user", "pass");
   server.addHandler(&events);
   // setup ......
 }
