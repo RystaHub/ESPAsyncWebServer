@@ -567,7 +567,7 @@ void AsyncWebServerRequest::_parseLine(){
       } else {
         _parseState = PARSE_REQ_END;
         if(_handler) _handler->handleRequest(this);
-        else send(501);
+        else if (_response == NULL) send(501);
       }
     } else _parseReqHeader();
   }
@@ -960,15 +960,15 @@ String AsyncWebServerRequest::urlDecode(const String& text) const {
 
 
 const char * AsyncWebServerRequest::methodToString() const {
-  if(_method == HTTP_ANY) return String(F("ANY")).c_str();
-  else if(_method & HTTP_GET) return String(F("GET")).c_str();
-  else if(_method & HTTP_POST) return String(F("POST")).c_str();
-  else if(_method & HTTP_DELETE) return String(F("DELETE")).c_str();
-  else if(_method & HTTP_PUT) return String(F("PUT")).c_str();
-  else if(_method & HTTP_PATCH) return String(F("PATCH")).c_str();
-  else if(_method & HTTP_HEAD) return String(F("HEAD")).c_str();
-  else if(_method & HTTP_OPTIONS) return String(F("OPTIONS")).c_str();
-  return String(F("UNKNOWN")).c_str();
+  if(_method == HTTP_ANY) return "ANY";
+  else if(_method & HTTP_GET) return "GET";
+  else if(_method & HTTP_POST) return "POST";
+  else if(_method & HTTP_DELETE) return "DELETE";
+  else if(_method & HTTP_PUT) return "PUT";
+  else if(_method & HTTP_PATCH) return "PATCH";
+  else if(_method & HTTP_HEAD) return "HEAD";
+  else if(_method & HTTP_OPTIONS) return "OPTIONS";
+  return "UNKNOWN";
 }
 
 const char *AsyncWebServerRequest::requestedConnTypeToString() const {

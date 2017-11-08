@@ -106,6 +106,8 @@ void AsyncWebServer::_rewriteRequest(AsyncWebServerRequest *request){
 }
 
 void AsyncWebServer::_attachHandler(AsyncWebServerRequest *request){
+  if (!_checkAuthentication(request))
+    return;
   for(const auto& h: _handlers){
     if (h->filter(request) && h->canHandle(request)){
       request->setHandler(h);
@@ -117,6 +119,29 @@ void AsyncWebServer::_attachHandler(AsyncWebServerRequest *request){
   request->setHandler(_catchAllHandler);
 }
 
+bool AsyncWebServer::_checkAuthentication(AsyncWebServerRequest *request) {
+  if (_username.length() == 0 || _password.length() == 0) {
+    Serial.println("No user or pass");
+    return true;
+  }
+  Serial.println("checking authentiaction for '" + _username + "', '" + _password + "'");
+  if (!request->authenticate(_username.c_str(), _password.c_str())) {
+    Serial.println("invalid auth!");
+    request->requestAuthentication("rysta", true);
+    return false;
+  }
+  return true;
+}
+
+void AsyncWebServer::setAuthentication(String username, String password) {
+  _username = username;
+  _password = password;
+}
+
+void AsyncWebServer::removeAuthentication() {
+  _username = String();
+  _password = String();
+}
 
 AsyncCallbackWebHandler& AsyncWebServer::on(const char* uri, WebRequestMethodComposite method, ArRequestHandlerFunction onRequest, ArUploadHandlerFunction onUpload, ArBodyHandlerFunction onBody){
   AsyncCallbackWebHandler* handler = new AsyncCallbackWebHandler();

@@ -346,7 +346,7 @@ class AsyncWebServerResponse {
     size_t _ackedLength;
     size_t _writtenLength;
     WebResponseState _state;
-    const char* _responseCodeToString(int code);
+    String _responseCodeToString(int code);
 
   public:
     AsyncWebServerResponse();
@@ -375,6 +375,7 @@ typedef std::function<void(AsyncWebServerRequest *request, uint8_t *data, size_t
 class AsyncWebServer {
   protected:
     AsyncServer _server;
+    String _username, _password;
     LinkedList<AsyncWebRewrite*> _rewrites;
     LinkedList<AsyncWebHandler*> _handlers;
     AsyncCallbackWebHandler* _catchAllHandler;
@@ -410,6 +411,10 @@ class AsyncWebServer {
 
     void reset(); //remove all writers and handlers, with onNotFound/onFileUpload/onRequestBody 
   
+    void setAuthentication(String username, String password);
+    void removeAuthentication();
+    bool _checkAuthentication(AsyncWebServerRequest *request);
+
     void _handleDisconnect(AsyncWebServerRequest *request);
     void _attachHandler(AsyncWebServerRequest *request);
     void _rewriteRequest(AsyncWebServerRequest *request);

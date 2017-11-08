@@ -36,51 +36,51 @@ void* memchr(void* ptr, int ch, size_t count)
 /*
  * Abstract Response
  * */
-const char* AsyncWebServerResponse::_responseCodeToString(int code) {
+String AsyncWebServerResponse::_responseCodeToString(int code) {
   #ifdef DO_NOT_SEND_RESPONSE_REASON_STRING
   return "";
   #else
   switch (code) {
-    case 100: return String(F("Continue")).c_str();
-    case 101: return String(F("Switching Protocols")).c_str();
-    case 200: return String(F("OK")).c_str();
-    case 201: return String(F("Created")).c_str();
-    case 202: return String(F("Accepted")).c_str();
-    case 203: return String(F("Non-Authoritative Information")).c_str();
-    case 204: return String(F("No Content")).c_str();
-    case 205: return String(F("Reset Content")).c_str();
-    case 206: return String(F("Partial Content")).c_str();
-    case 300: return String(F("Multiple Choices")).c_str();
-    case 301: return String(F("Moved Permanently")).c_str();
-    case 302: return String(F("Found")).c_str();
-    case 303: return String(F("See Other")).c_str();
-    case 304: return String(F("Not Modified")).c_str();
-    case 305: return String(F("Use Proxy")).c_str();
-    case 307: return String(F("Temporary Redirect")).c_str();
-    case 400: return String(F("Bad Request")).c_str();
-    case 401: return String(F("Unauthorized")).c_str();
-    case 402: return String(F("Payment Required")).c_str();
-    case 403: return String(F("Forbidden")).c_str();
-    case 404: return String(F("Not Found")).c_str();
-    case 405: return String(F("Method Not Allowed")).c_str();
-    case 406: return String(F("Not Acceptable")).c_str();
-    case 407: return String(F("Proxy Authentication Required")).c_str();
-    case 408: return String(F("Request Time-out")).c_str();
-    case 409: return String(F("Conflict")).c_str();
-    case 410: return String(F("Gone")).c_str();
-    case 411: return String(F("Length Required")).c_str();
-    case 412: return String(F("Precondition Failed")).c_str();
-    case 413: return String(F("Request Entity Too Large")).c_str();
-    case 414: return String(F("Request-URI Too Large")).c_str();
-    case 415: return String(F("Unsupported Media Type")).c_str();
-    case 416: return String(F("Requested range not satisfiable")).c_str();
-    case 417: return String(F("Expectation Failed")).c_str();
-    case 500: return String(F("Internal Server Error")).c_str();
-    case 501: return String(F("Not Implemented")).c_str();
-    case 502: return String(F("Bad Gateway")).c_str();
-    case 503: return String(F("Service Unavailable")).c_str();
-    case 504: return String(F("Gateway Time-out")).c_str();
-    case 505: return String(F("HTTP Version not supported")).c_str();
+    case 100: return String(F("Continue"));
+    case 101: return String(F("Switching Protocols"));
+    case 200: return String(F("OK"));
+    case 201: return String(F("Created"));
+    case 202: return String(F("Accepted"));
+    case 203: return String(F("Non-Authoritative Information"));
+    case 204: return String(F("No Content"));
+    case 205: return String(F("Reset Content"));
+    case 206: return String(F("Partial Content"));
+    case 300: return String(F("Multiple Choices"));
+    case 301: return String(F("Moved Permanently"));
+    case 302: return String(F("Found"));
+    case 303: return String(F("See Other"));
+    case 304: return String(F("Not Modified"));
+    case 305: return String(F("Use Proxy"));
+    case 307: return String(F("Temporary Redirect"));
+    case 400: return String(F("Bad Request"));
+    case 401: return String(F("Unauthorized"));
+    case 402: return String(F("Payment Required"));
+    case 403: return String(F("Forbidden"));
+    case 404: return String(F("Not Found"));
+    case 405: return String(F("Method Not Allowed"));
+    case 406: return String(F("Not Acceptable"));
+    case 407: return String(F("Proxy Authentication Required"));
+    case 408: return String(F("Request Time-out"));
+    case 409: return String(F("Conflict"));
+    case 410: return String(F("Gone"));
+    case 411: return String(F("Length Required"));
+    case 412: return String(F("Precondition Failed"));
+    case 413: return String(F("Request Entity Too Large"));
+    case 414: return String(F("Request-URI Too Large"));
+    case 415: return String(F("Unsupported Media Type"));
+    case 416: return String(F("Requested range not satisfiable"));
+    case 417: return String(F("Expectation Failed"));
+    case 500: return String(F("Internal Server Error"));
+    case 501: return String(F("Not Implemented"));
+    case 502: return String(F("Bad Gateway"));
+    case 503: return String(F("Service Unavailable"));
+    case 504: return String(F("Gateway Time-out"));
+    case 505: return String(F("HTTP Version not supported"));
     default:  return "";
   }
     #endif
@@ -137,7 +137,7 @@ String AsyncWebServerResponse::_assembleHead(uint8_t version){
   int bufSize = 300;
   char buf[bufSize];
 
-  snprintf(buf, bufSize, "HTTP/1.%d %d %s\r\n", version, _code, _responseCodeToString(_code));
+  snprintf(buf, bufSize, "HTTP/1.%d %d %s\r\n", version, _code, _responseCodeToString(_code).c_str());
   out.concat(buf);
 
   if(_sendContentLength) {
