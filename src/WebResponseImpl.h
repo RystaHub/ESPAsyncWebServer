@@ -29,6 +29,11 @@
 #include <vector>
 // It is possible to restore these defines, but one can use _min and _max instead. Or std::min, std::max.
 
+
+// prohibit sendind the reason phrase, to save heap/binary size
+// its optional according to: https://tools.ietf.org/html/rfc2616#section-6.1.1
+#define DO_NOT_SEND_RESPONSE_REASON_STRING
+
 class AsyncBasicResponse: public AsyncWebServerResponse {
   private:
     String _content;

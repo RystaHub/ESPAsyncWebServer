@@ -37,6 +37,9 @@ void* memchr(void* ptr, int ch, size_t count)
  * Abstract Response
  * */
 const char* AsyncWebServerResponse::_responseCodeToString(int code) {
+  #ifdef DO_NOT_SEND_RESPONSE_REASON_STRING
+  return "";
+  #else
   switch (code) {
     case 100: return String(F("Continue")).c_str();
     case 101: return String(F("Switching Protocols")).c_str();
@@ -80,6 +83,7 @@ const char* AsyncWebServerResponse::_responseCodeToString(int code) {
     case 505: return String(F("HTTP Version not supported")).c_str();
     default:  return "";
   }
+    #endif
 }
 
 AsyncWebServerResponse::AsyncWebServerResponse()
