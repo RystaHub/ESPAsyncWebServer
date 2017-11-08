@@ -121,12 +121,9 @@ void AsyncWebServer::_attachHandler(AsyncWebServerRequest *request){
 
 bool AsyncWebServer::_checkAuthentication(AsyncWebServerRequest *request) {
   if (_username.length() == 0 || _password.length() == 0) {
-    Serial.println("No user or pass");
     return true;
   }
-  Serial.println("checking authentiaction for '" + _username + "', '" + _password + "'");
   if (!request->authenticate(_username.c_str(), _password.c_str())) {
-    Serial.println("invalid auth!");
     request->requestAuthentication("rysta", true);
     return false;
   }
