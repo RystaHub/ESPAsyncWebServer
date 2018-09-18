@@ -306,9 +306,7 @@ size_t AsyncAbstractResponse::_ack(AsyncWebServerRequest *request, size_t len, u
     }
 
     if(headLen){
-      //TODO: memcpy should be faster?
-      sprintf((char*)buf, "%s", _head.c_str());
-      _head = String();
+      memcpy(buf, _head.c_str(), _head.length());
     }
 
     size_t readLen = 0;
@@ -317,6 +315,10 @@ size_t AsyncAbstractResponse::_ack(AsyncWebServerRequest *request, size_t len, u
       // HTTP 1.1 allows leading zeros in chunk length. Or spaces may be added.
       // See RFC2616 sections 2, 3.6.1.
       readLen = _fillBufferAndProcessTemplates(buf+headLen+6, outLen - 8);
+      if(readLen == RESPONSE_TRY_AGAIN){
+          free(buf);
+          return 0;
+      }
       outLen = sprintf((char*)buf+headLen, "%x", readLen) + headLen;
       while(outLen < headLen + 4) buf[outLen++] = ' ';
       buf[outLen++] = '\r';
@@ -325,16 +327,27 @@ size_t AsyncAbstractResponse::_ack(AsyncWebServerRequest *request, size_t len, u
       buf[outLen++] = '\r';
       buf[outLen++] = '\n';
     } else {
-      outLen = _fillBufferAndProcessTemplates(buf+headLen, outLen) + headLen;
+      readLen = _fillBufferAndProcessTemplates(buf+headLen, outLen);
+      if(readLen == RESPONSE_TRY_AGAIN){
+          free(buf);
+          return 0;
+      }
+      outLen = readLen + headLen;
     }
 
-    if(outLen)
-      _writtenLength += request->client()->write((const char*)buf, outLen);
+    if(headLen){
+        _head = String();
+    }
 
-    if(_chunked)
-      _sentLength += readLen;
-    else
-      _sentLength += outLen - headLen;
+    if(outLen){
+        _writtenLength += request->client()->write((const char*)buf, outLen);
+    }
+
+    if(_chunked){
+        _sentLength += readLen;
+    } else {
+        _sentLength += outLen - headLen;
+    }
 
     free(buf);
 
@@ -597,7 +610,9 @@ AsyncCallbackResponse::AsyncCallbackResponse(const String& contentType, size_t l
 
 size_t AsyncCallbackResponse::_fillBuffer(uint8_t *data, size_t len){
   size_t ret = _content(data, len, _filledLength);
-  _filledLength += ret;
+  if(ret != RESPONSE_TRY_AGAIN){
+      _filledLength += ret;
+  }
   return ret;
 }
 
@@ -617,7 +632,9 @@ AsyncChunkedResponse::AsyncChunkedResponse(const String& contentType, AwsRespons
 
 size_t AsyncChunkedResponse::_fillBuffer(uint8_t *data, size_t len){
   size_t ret = _content(data, len, _filledLength);
-  _filledLength += ret;
+  if(ret != RESPONSE_TRY_AGAIN){
+      _filledLength += ret;
+  }
   return ret;
 }
 
